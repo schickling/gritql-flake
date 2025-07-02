@@ -14,7 +14,30 @@ nix develop github:schickling/gritql-flake
 
 ## Add to Your Project
 
-### In `flake.nix` (dev shell)
+### Using Overlay (Recommended)
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    gritql.url = "github:schickling/gritql-flake";
+  };
+
+  outputs = { self, nixpkgs, gritql, ... }: {
+    nixosConfigurations.example = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ({ pkgs, ... }: {
+          nixpkgs.overlays = [ gritql.overlays.default ];
+          environment.systemPackages = [ pkgs.gritql ];
+        })
+      ];
+    };
+  };
+}
+```
+
+### In Dev Shell
 
 ```nix
 {
@@ -27,11 +50,14 @@ nix develop github:schickling/gritql-flake
   outputs = { self, nixpkgs, flake-utils, gritql }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ gritql.overlays.default ];
+        };
       in {
         devShells.default = pkgs.mkShell {
-          buildInputs = [
-            gritql.packages.${system}.default
+          buildInputs = [ 
+            pkgs.gritql
             # your other dev dependencies
           ];
         };
@@ -41,20 +67,11 @@ nix develop github:schickling/gritql-flake
 
 Then run `nix develop` to enter the shell with `grit` available.
 
-### In NixOS configuration
-
-```nix
-environment.systemPackages = [
-  inputs.gritql.packages.${pkgs.system}.default
-];
-```
-
 ### In Home Manager
 
 ```nix
-home.packages = [
-  inputs.gritql.packages.${pkgs.system}.default
-];
+# After adding the overlay
+home.packages = [ pkgs.gritql ];
 ```
 
 ## What is GritQL?
