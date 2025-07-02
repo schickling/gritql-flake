@@ -14,19 +14,32 @@ nix develop github:schickling/gritql-flake
 
 ## Add to Your Project
 
-### In `flake.nix`
+### In `flake.nix` (dev shell)
 
 ```nix
 {
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
     gritql.url = "github:schickling/gritql-flake";
   };
 
-  outputs = { self, gritql, ... }: {
-    # Use gritql.packages.${system}.default
-  };
+  outputs = { self, nixpkgs, flake-utils, gritql }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        devShells.default = pkgs.mkShell {
+          buildInputs = [
+            gritql.packages.${system}.default
+            # your other dev dependencies
+          ];
+        };
+      });
 }
 ```
+
+Then run `nix develop` to enter the shell with `grit` available.
 
 ### In NixOS configuration
 
