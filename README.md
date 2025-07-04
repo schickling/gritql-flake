@@ -83,7 +83,7 @@ This flake builds GritQL from source using the Rust toolchain, providing:
 - Source transparency and security
 
 The build process:
-1. Fetches source code from [honeycombio/gritql](https://github.com/honeycombio/gritql)
+1. Fetches latest source code from [honeycombio/gritql](https://github.com/honeycombio/gritql) main branch
 2. Includes git submodules for tree-sitter language support
 3. Builds using Rust 1.82.0 as specified by the project
 4. Produces the `grit` CLI binary

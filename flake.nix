@@ -11,17 +11,17 @@
       # Define the package builder as a function
       mkGritql = pkgs: pkgs.rustPlatform.buildRustPackage rec {
         pname = "gritql";
-        version = "0.1.0-alpha.1743007075";
+        version = "0.1.0";
         
         src = pkgs.fetchFromGitHub {
           owner = "honeycombio";
           repo = "gritql";
-          rev = "v${version}";
-          sha256 = "sha256-ru8XnXiwwrlrGFtj8kIXUGBS6jnazLIQklZotTPItSw=";
+          rev = "499eed8b2e58c87d3159b2f36f27402a3ab5e0ba"; # main branch head
+          sha256 = "sha256-4PQm4yLQ3WzZiTZrZaaIy5N69q9d2i8YfRYqsghj9Y8=";
           fetchSubmodules = true;
         };
         
-        cargoHash = "sha256-tvwxoqPpVoR7oZJuVfssrwica2dVVs2DyvD9mzW+NwU=";
+        cargoHash = "sha256-WNUqNATPtWfCQX5jpRD0wgLd/fOlJflumNohIwXcFK8=";
         
         # Only build the grit binary from the cli_bin crate without default features
         cargoBuildFlags = [ "-p" "grit" "--no-default-features" ];
