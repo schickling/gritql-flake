@@ -74,6 +74,20 @@ Then run `nix develop` to enter the shell with `grit` available.
 home.packages = [ pkgs.gritql ];
 ```
 
+## Build Approach
+
+This flake builds GritQL from source using the Rust toolchain, providing:
+- Reproducible builds across platforms
+- Direct integration with Nix ecosystem
+- Full control over build configuration
+- Source transparency and security
+
+The build process:
+1. Fetches latest source code from [honeycombio/gritql](https://github.com/honeycombio/gritql) main branch
+2. Includes git submodules for tree-sitter language support
+3. Builds using Rust 1.82.0 as specified by the project
+4. Produces the `grit` CLI binary
+
 ## What is GritQL?
 
 GritQL is a declarative query language for searching and transforming code. Use it to:

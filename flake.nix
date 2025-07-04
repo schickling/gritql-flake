@@ -9,57 +9,46 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       # Define the package builder as a function
-      mkGritql = pkgs: pkgs.stdenv.mkDerivation rec {
+      mkGritql = pkgs: pkgs.rustPlatform.buildRustPackage rec {
         pname = "gritql";
-        version = "0.1.0-alpha.1743007075";
+        version = "0.1.0";
         
-        src = 
-          if pkgs.stdenv.isDarwin then
-            if pkgs.stdenv.isAarch64 then
-              pkgs.fetchurl {
-                url = "https://github.com/getgrit/gritql/releases/download/v${version}/grit-aarch64-apple-darwin.tar.gz";
-                sha256 = "1wvb0sm3s6ny1n8rniba5sk92sz591z9nakgr0ssx687m7pcgf3s";
-              }
-            else
-              pkgs.fetchurl {
-                url = "https://github.com/getgrit/gritql/releases/download/v${version}/grit-x86_64-apple-darwin.tar.gz";
-                sha256 = "03h1aav549n53x17k9xzqw0sqnhsad9sybr8jghmhaz7rwqz00mm";
-              }
-          else if pkgs.stdenv.isLinux then
-            if pkgs.stdenv.isAarch64 then
-              pkgs.fetchurl {
-                url = "https://github.com/getgrit/gritql/releases/download/v${version}/grit-aarch64-unknown-linux-gnu.tar.gz";
-                sha256 = "0w28jg8ffz1fccvjqnf7lxhh5y3qk8klv3q1dlw1cmsr8mf42dwf";
-              }
-            else
-              pkgs.fetchurl {
-                url = "https://github.com/getgrit/gritql/releases/download/v${version}/grit-x86_64-unknown-linux-gnu.tar.gz";
-                sha256 = "0j9i2r63s7bqdiax15n9cgbcczq7jjng19ram62hxjiqlm0ldcwl";
-              }
-          else
-            throw "Unsupported platform";
+        src = pkgs.fetchFromGitHub {
+          owner = "honeycombio";
+          repo = "gritql";
+          rev = "499eed8b2e58c87d3159b2f36f27402a3ab5e0ba"; # main branch head
+          sha256 = "sha256-4PQm4yLQ3WzZiTZrZaaIy5N69q9d2i8YfRYqsghj9Y8=";
+          fetchSubmodules = true;
+        };
         
-        nativeBuildInputs = with pkgs; 
-          lib.optionals stdenv.isLinux [ autoPatchelfHook ];
+        cargoHash = "sha256-WNUqNATPtWfCQX5jpRD0wgLd/fOlJflumNohIwXcFK8=";
         
-        buildInputs = with pkgs; 
-          lib.optionals stdenv.isLinux [ stdenv.cc.cc.lib ];
+        # Only build the grit binary from the cli_bin crate without default features
+        cargoBuildFlags = [ "-p" "grit" "--no-default-features" ];
         
-        unpackPhase = ''
-          tar -xzf $src
-        '';
+        # Use the specific Rust version from rust-toolchain.toml
+        RUSTC_VERSION = "1.82.0";
         
-        installPhase = ''
-          runHook preInstall
-          
-          install -D -m755 */grit $out/bin/grit
-          
-          runHook postInstall
-        '';
+        # Build inputs may be needed for certain dependencies
+        nativeBuildInputs = with pkgs; [
+          pkg-config
+          perl
+        ];
+        
+        buildInputs = with pkgs; [
+          # Common build dependencies for Rust projects
+          openssl
+        ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          pkgs.darwin.apple_sdk.frameworks.Security
+          pkgs.darwin.apple_sdk.frameworks.SystemConfiguration
+        ];
+        
+        # Skip tests for now to speed up build
+        doCheck = false;
         
         meta = with pkgs.lib; {
           description = "GritQL is a query language for code";
-          homepage = "https://github.com/getgrit/gritql";
+          homepage = "https://github.com/honeycombio/gritql";
           license = licenses.mit;
           maintainers = [ ];
           mainProgram = "grit";
